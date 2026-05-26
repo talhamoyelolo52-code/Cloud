@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ MC Plugin Compiler Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --secondary: #00ff88;
+            --accent: #ff6b6b;
+            --bg: #0a0a1a;
+            --bg-light: #12122a;
+            --card: rgba(255,255,255,0.03);
+            --card-border: rgba(255,255,255,0.08);
+            --text: #e0e0ff;
+            --text-dim: #8892b0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(0,212,255,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(0,255,136,0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(255,107,107,0.05) 0%, transparent 50%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(1deg); }
+            66% { transform: translate(-20px, 20px) rotate(-1deg); }
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite;
+        }
+
+        .particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 20%; top: 80%; animation-delay: 2s; background: var(--secondary); }
+        .particle:nth-child(3) { left: 70%; top: 10%; animation-delay: 4s; }
+        .particle:nth-child(4) { left: 80%; top: 60%; animation-delay: 6s; background: var(--accent); }
+        .particle:nth-child(5) { left: 40%; top: 40%; animation-delay: 8s; }
+        .particle:nth-child(6) { left: 90%; top: 30%; animation-delay: 10s; background: var(--secondary); }
+        .particle:nth-child(7) { left: 15%; top: 50%; animation-delay: 12s; }
+        .particle:nth-child(8) { left: 60%; top: 90%; animation-delay: 14s; background: var(--accent); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+            50% { transform: translateY(-100px) scale(1.5); opacity: 0.6; }
+        }
+
+        /* Navbar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10,10,26,0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 0 30px;
+        }
+
+        .nav-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            -webkit-text-fill-color: initial;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            background: rgba(0,212,255,0.08);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            background: rgba(0,212,255,0.12);
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 100px 20px 80px;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            background: rgba(0,212,255,0.1);
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 50px;
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,255,0.2); }
+            50% { box-shadow: 0 0 20px 5px rgba(0,212,255,0.1); }
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 36px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #0a0a1a;
+            text-decoration: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(0,212,255,0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 60px rgba(0,212,255,0.4);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 36px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            color: var(--text);
+            text-decoration: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background: rgba(0,212,255,0.05);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            max-width: 900px;
+            margin: 0 auto 60px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            border-color: rgba(0,212,255,0.2);
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* Features */
+        .features {
+            padding: 80px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 40px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-header p {
+            color: var(--text-dim);
+            font-size: 18px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 40px;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .feature-card:hover::after {
+            opacity: 1;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(0,212,255,0.2);
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+
+        .feature-icon-wrap {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,255,136,0.15));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card p {
+            color: var(--text-dim);
+            line-height: 1.7;
+            font-size: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Recent Builds */
+        .recent-builds {
+            padding: 80px 20px;
+            background: linear-gradient(180deg, transparent, rgba(0,212,255,0.02), transparent);
+        }
+
+        .builds-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .build-item {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .build-item:hover {
+            border-color: rgba(0,212,255,0.2);
+            transform: translateX(8px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .build-info h4 {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .build-meta {
+            color: var(--text-dim);
+            font-size: 13px;
+            display: flex;
+            gap: 16px;
+        }
+
+        .build-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .build-status {
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .status-success {
+            background: rgba(0,255,136,0.12);
+            color: var(--secondary);
+            border: 1px solid rgba(0,255,136,0.2);
+        }
+
+        .status-failed {
+            background: rgba(255,107,107,0.12);
+            color: var(--accent);
+            border: 1px solid rgba(255,107,107,0.2);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 50px 20px;
+            border-top: 1px solid var(--card-border);
+            color: var(--text-dim);
+        }
+
+        footer .heart {
+            color: var(--accent);
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 36px; }
+            .hero p { font-size: 17px; }
+            .stats-bar { grid-template-columns: 1fr; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .build-item { flex-direction: column; gap: 12px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="particles">
+        <div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/" class="logo">
+                <div class="logo-icon">⚡</div>
+                MC Plugin Compiler
+            </a>
+            <div class="nav-links">
+                <a href="/" class="active">Home</a>
+                <a href="/compiler">Compiler</a>
+                <a href="/compiler">History</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge">
+            <span>🚀</span> Online Minecraft Plugin Builder
+        </div>
+        <h1>Compile Plugins<br>in Seconds</h1>
+        <p>Upload your plugin source code as ZIP. We auto-detect Gradle or Maven, compile with Java 17, and give you the ready-to-use JAR file.</p>
+        <div class="hero-btns">
+            <a href="/compiler" class="btn-primary">
+                <span>🚀</span> Start Compiling
+            </a>
+            <a href="#features" class="btn-secondary">
+                <span>✨</span> Explore Features
+            </a>
+        </div>
+    </section>
+
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-number" id="totalBuilds">0</div>
+            <div class="stat-label">Total Builds</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-number" id="successBuilds">0</div>
+            <div class="stat-label">Successful</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-number" id="failedBuilds">0</div>
+            <div class="stat-label">Failed</div>
+        </div>
+    </div>
+
+    <section class="features" id="features">
+        <div class="section-header">
+            <h2>Why Choose Us?</h2>
+            <p>Everything you need to build Minecraft plugins online</p>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap">📦</div>
+                <h3>One-Click Upload</h3>
+                <p>Just drag & drop your ZIP file. No configuration needed. We handle all the build complexity for you.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">🔧</div>
+                <h3>Gradle & Maven</h3>
+                <p>Full support for both build systems. Auto-detects wrapper scripts and uses proper compilation pipeline.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">⚡</div>
+                <h3>Lightning Fast</h3>
+                <p>Optimized Java 17 environment. Parallel builds. Get your compiled JAR in under 30 seconds.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">📋</div>
+                <h3>Detailed Logs</h3>
+                <p>Full compilation output with syntax highlighting. Debug errors easily with timestamps and color-coded output.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">📱</div>
+                <h3>Works Everywhere</h3>
+                <p>Responsive design works on desktop, tablet, and mobile. Compile plugins on the go from your phone.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">🔒</div>
+                <h3>Secure & Private</h3>
+                <p>Auto-cleanup after builds. Files deleted after download. No persistent storage of your source code.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="recent-builds">
+        <div class="builds-container">
+            <div class="section-header">
+                <h2>Recent Builds</h2>
+                <p>Latest compilation activity</p>
+            </div>
+            <div id="buildList">
+                <div style="text-align:center; padding:60px; color:#555;">
+                    <div style="font-size:48px; margin-bottom:16px;">📭</div>
+                    <p>No builds yet. Start compiling!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>Made with <span class="heart">❤️</span> for the Minecraft community</p>
+        <p style="margin-top:8px; font-size:13px;">⚡ MC Plugin Compiler Pro v3.0</p>
+    </footer>
+
+    <script>
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                if (data.success) {
+                    animateNumber('totalBuilds', data.stats.total);
+                    animateNumber('successBuilds', data.stats.successful);
+                    animateNumber('failedBuilds', data.stats.failed);
+                }
+            } catch(e) {}
+        }
+
+        function animateNumber(id, target) {
+            const el = document.getElementById(id);
+            let current = 0;
+            const increment = target / 30;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    el.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    el.textContent = Math.floor(current);
+                }
+            }, 30);
+        }
+
+        async function loadRecentBuilds() {
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+                const list = document.getElementById('buildList');
+
+                if (!data.success || data.history.length === 0) return;
+
+                const recent = data.history.slice(0, 5);
+                list.innerHTML = recent.map(build => `
+                    <div class="build-item" onclick="location.href='/detail/${build.id}'">
+                        <div class="build-info">
+                            <h4>${build.filename}</h4>
+                            <div class="build-meta">
+                                <span>📅 ${new Date(build.timestamp).toLocaleDateString()}</span>
+                                <span>🔧 ${build.buildType}</span>
+                                <span>⏱️ ${build.buildTime ? (build.buildTime/1000).toFixed(1)+'s' : 'N/A'}</span>
+                            </div>
+                        </div>
+                        <span class="build-status ${build.status === 'success' ? 'status-success' : 'status-failed'}">
+                            ${build.status === 'success' ? '✅ Success' : '❌ Failed'}
+                        </span>
+                    </div>
+                `).join('');
+            } catch(e) {}
+        }
+
+        loadStats();
+        loadRecentBuilds();
+    </script>
+</body>
+</html>

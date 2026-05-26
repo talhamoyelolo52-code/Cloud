@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compiler - MC Plugin Compiler Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --secondary: #00ff88;
+            --accent: #ff6b6b;
+            --bg: #0a0a1a;
+            --bg-light: #12122a;
+            --card: rgba(255,255,255,0.03);
+            --card-border: rgba(255,255,255,0.08);
+            --text: #e0e0ff;
+            --text-dim: #8892b0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Background */
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 50%, rgba(0,212,255,0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(0,255,136,0.03) 0%, transparent 50%);
+        }
+
+        /* Navbar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10,10,26,0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 0 30px;
+        }
+
+        .nav-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            -webkit-text-fill-color: initial;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            background: rgba(0,212,255,0.08);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            background: rgba(0,212,255,0.12);
+        }
+
+        /* Main */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .page-header h1 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-header p {
+            color: var(--text-dim);
+            font-size: 18px;
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            background: var(--card);
+            border: 2px dashed var(--card-border);
+            border-radius: 24px;
+            padding: 60px 40px;
+            text-align: center;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(0,255,136,0.05));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary);
+            transform: scale(1.01);
+        }
+
+        .upload-zone:hover::before, .upload-zone.dragover::before {
+            opacity: 1;
+        }
+
+        .upload-zone.dragover {
+            border-style: solid;
+            background: rgba(0,212,255,0.05);
+        }
+
+        .upload-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-icon {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,255,136,0.15));
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 24px;
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .upload-zone h3 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .upload-zone p {
+            color: var(--text-dim);
+            margin-bottom: 24px;
+        }
+
+        .browse-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #0a0a1a;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .browse-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.3);
+        }
+
+        #fileInput { display: none; }
+
+        /* File Preview */
+        .file-preview {
+            display: none;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            animation: slideUp 0.4s ease;
+        }
+
+        .file-preview.show {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .file-icon {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,255,136,0.15));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-details h4 {
+            font-size: 17px;
+            margin-bottom: 4px;
+        }
+
+        .file-details p {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .file-remove {
+            width: 40px; height: 40px;
+            background: rgba(255,107,107,0.1);
+            border: 1px solid rgba(255,107,107,0.2);
+            border-radius: 12px;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .file-remove:hover {
+            background: rgba(255,107,107,0.2);
+            transform: scale(1.1);
+        }
+
+        /* Compile Button */
+        .compile-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 16px;
+            color: #0a0a1a;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .compile-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 50px rgba(0,212,255,0.3);
+        }
+
+        .compile-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-spinner {
+            display: none;
+            width: 24px; height: 24px;
+            border: 3px solid #0a0a1a;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Result Card */
+        .result-card {
+            display: none;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 40px;
+            animation: slideUp 0.5s ease;
+        }
+
+        .result-success {
+            background: linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,255,136,0.02));
+            border: 1px solid rgba(0,255,136,0.2);
+        }
+
+        .result-failed {
+            background: linear-gradient(135deg, rgba(255,107,107,0.08), rgba(255,107,107,0.02));
+            border: 1px solid rgba(255,107,107,0.2);
+        }
+
+        .result-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .result-success .result-title { color: var(--secondary); }
+        .result-failed .result-title { color: var(--accent); }
+
+        .result-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--secondary);
+            color: #0a0a1a;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .btn-download:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,255,136,0.3);
+        }
+
+        .btn-detail {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            color: var(--text);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .btn-detail:hover {
+            border-color: var(--primary);
+            background: rgba(0,212,255,0.05);
+        }
+
+        /* Logs */
+        .logs-section {
+            margin-bottom: 50px;
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logs-header h3 {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logs-header h3 span {
+            font-size: 24px;
+        }
+
+        .clear-btn {
+            padding: 8px 20px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            color: var(--text-dim);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .clear-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .logs-container {
+            background: #050510;
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .logs-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .logs-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .logs-container::-webkit-scrollbar-thumb {
+            background: var(--card-border);
+            border-radius: 3px;
+        }
+
+        .log-entry {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            display: flex;
+            gap: 12px;
+        }
+
+        .log-time {
+            color: #555;
+            flex-shrink: 0;
+            font-size: 12px;
+        }
+
+        .log-content { flex: 1; }
+        .log-info { color: var(--secondary); }
+        .log-warn { color: #ffaa00; }
+        .log-error { color: var(--accent); }
+        .log-system { color: var(--primary); }
+        .log-process { color: #a78bfa; }
+
+        .empty-logs {
+            text-align: center;
+            padding: 80px 20px;
+            color: #444;
+        }
+
+        .empty-logs-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* History */
+        .history-section {
+            margin-top: 60px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .history-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-count {
+            padding: 6px 14px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 50px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-item {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            border-color: rgba(0,212,255,0.2);
+            transform: translateX(8px);
+            background: rgba(0,212,255,0.02);
+        }
+
+        .history-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .history-meta {
+            display: flex;
+            gap: 16px;
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+
+        .history-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-status {
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-dim);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 32px; }
+            .upload-zone { padding: 40px 24px; }
+            .file-preview.show { flex-direction: column; text-align: center; }
+            .history-item { flex-direction: column; gap: 12px; text-align: center; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/" class="logo">
+                <div class="logo-icon">⚡</div>
+                MC Plugin Compiler
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/compiler" class="active">Compiler</a>
+                <a href="#history">History</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🚀 Plugin Compiler</h1>
+            <p>Upload your source code and get a compiled JAR in seconds</p>
+        </div>
+
+        <!-- Upload -->
+        <div class="upload-zone" id="dropZone">
+            <div class="upload-content">
+                <div class="upload-icon">📦</div>
+                <h3>Drop your ZIP file here</h3>
+                <p>or click to browse • Supports Gradle & Maven projects</p>
+                <label class="browse-btn" for="fileInput">
+                    <span>📁</span> Browse Files
+                </label>
+                <input type="file" id="fileInput" accept=".zip">
+            </div>
+        </div>
+
+        <!-- File Preview -->
+        <div class="file-preview" id="filePreview">
+            <div class="file-icon">📄</div>
+            <div class="file-details">
+                <h4 id="fileName">filename.zip</h4>
+                <p id="fileSize">0 KB</p>
+            </div>
+            <button class="file-remove" onclick="removeFile()">✕</button>
+        </div>
+
+        <!-- Compile -->
+        <button class="compile-btn" id="compileBtn" disabled>
+            <span class="btn-spinner" id="btnSpinner"></span>
+            <span id="btnText">⚡ Compile Plugin</span>
+        </button>
+
+        <!-- Result -->
+        <div class="result-card" id="resultCard">
+            <div class="result-icon" id="resultIcon"></div>
+            <div class="result-title" id="resultTitle"></div>
+            <div class="result-actions" id="resultActions"></div>
+        </div>
+
+        <!-- Logs -->
+        <div class="logs-section">
+            <div class="logs-header">
+                <h3><span>🖥️</span> Compilation Logs</h3>
+                <button class="clear-btn" onclick="clearLogs()">Clear</button>
+            </div>
+            <div class="logs-container" id="logContainer">
+                <div class="empty-logs">
+                    <div class="empty-logs-icon">📭</div>
+                    <p>Logs will appear here when you start compiling...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="history-section" id="history">
+            <div class="history-header">
+                <h2><span>📜</span> Build History</h2>
+                <span class="history-count" id="historyCount">0 builds</span>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <p>No builds yet. Start compiling!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const filePreview = document.getElementById('filePreview');
+        const compileBtn = document.getElementById('compileBtn');
+        const logContainer = document.getElementById('logContainer');
+        const resultCard = document.getElementById('resultCard');
+
+        let selectedFile = null;
+
+        // Drag & Drop
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        ['dragover','dragenter'].forEach(e => {
+            dropZone.addEventListener(e, (ev) => { ev.preventDefault(); dropZone.classList.add('dragover'); });
+        });
+
+        ['dragleave','drop'].forEach(e => {
+            dropZone.addEventListener(e, (ev) => { ev.preventDefault(); dropZone.classList.remove('dragover'); });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length) handleFile(files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file.name.endsWith('.zip')) {
+                addLog('❌ Only .zip files are supported!', 'error');
+                return;
+            }
+            selectedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(2) + ' KB';
+            filePreview.classList.add('show');
+            compileBtn.disabled = false;
+            addLog(`📦 Selected: ${file.name} (${(file.size/1024).toFixed(2)} KB)`, 'system');
+        }
+
+        function removeFile() {
+            selectedFile = null;
+            filePreview.classList.remove('show');
+            compileBtn.disabled = true;
+            fileInput.value = '';
+            addLog('🗑️ File removed', 'system');
+        }
+
+        compileBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            compileBtn.disabled = true;
+            document.getElementById('btnSpinner').style.display = 'inline-block';
+            document.getElementById('btnText').textContent = 'Compiling...';
+            resultCard.style.display = 'none';
+
+            addLog('🌐 Connected to server', 'system');
+            addLog('⏳ Starting compilation...', 'warn');
+            addLog(`📤 Uploading ${selectedFile.name}...`, 'process');
+
+            const formData = new FormData();
+            formData.append('plugin', selectedFile);
+
+            try {
+                const response = await fetch('/compile', { method: 'POST', body: formData });
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog('✅ Compilation successful!', 'info');
+                    addLog(`📦 Output: ${result.jarName || 'plugin.jar'}`, 'info');
+
+                    resultCard.className = 'result-card result-success';
+                    document.getElementById('resultIcon').textContent = '🎉';
+                    document.getElementById('resultTitle').textContent = 'Compilation Successful!';
+                    document.getElementById('resultActions').innerHTML = `
+                        <a href="${result.downloadUrl}" class="btn-download" download>⬇️ Download JAR</a>
+                        <a href="${result.detailUrl}" class="btn-detail">📋 View Details</a>
+                    `;
+                } else {
+                    addLog('❌ Compilation failed!', 'error');
+                    addLog(`📝 Error: ${result.error.substring(0, 200)}...`, 'error');
+
+                    resultCard.className = 'result-card result-failed';
+                    document.getElementById('resultIcon').textContent = '💥';
+                    document.getElementById('resultTitle').textContent = 'Compilation Failed!';
+                    document.getElementById('resultActions').innerHTML = `
+                        <a href="${result.detailUrl}" class="btn-detail">📋 View Error Details</a>
+                    `;
+                }
+
+                resultCard.style.display = 'block';
+                loadHistory();
+
+            } catch (err) {
+                addLog('❌ Network error: ' + err.message, 'error');
+            }
+
+            compileBtn.disabled = false;
+            document.getElementById('btnSpinner').style.display = 'none';
+            document.getElementById('btnText').textContent = '⚡ Compile Plugin';
+        });
+
+        function addLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerHTML = `<span class="log-time">[${time}]</span><span class="log-content log-${type}">${message}</span>`;
+
+            const empty = logContainer.querySelector('.empty-logs');
+            if (empty) empty.remove();
+
+            logContainer.appendChild(div);
+            div.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function clearLogs() {
+            logContainer.innerHTML = `
+                <div class="empty-logs">
+                    <div class="empty-logs-icon">📭</div>
+                    <p>Logs will appear here when you start compiling...</p>
+                </div>
+            `;
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+                const list = document.getElementById('historyList');
+                const count = document.getElementById('historyCount');
+
+                if (!data.success || data.history.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>No builds yet. Start compiling!</p>
+                        </div>
+                    `;
+                    count.textContent = '0 builds';
+                    return;
+                }
+
+                count.textContent = data.history.length + ' builds';
+                list.innerHTML = data.history.map(build => `
+                    <div class="history-item" onclick="location.href='/detail/${build.id}'">
+                        <div class="history-info">
+                            <h4>${build.filename}</h4>
+                            <div class="history-meta">
+                                <span>📅 ${new Date(build.timestamp).toLocaleDateString()}</span>
+                                <span>🔧 ${build.buildType}</span>
+                                <span>⏱️ ${build.buildTime ? (build.buildTime/1000).toFixed(1)+'s' : 'N/A'}</span>
+                            </div>
+                        </div>
+                        <span class="history-status ${build.status === 'success' ? 'status-success' : 'status-failed'}">
+                            ${build.status === 'success' ? '✅' : '❌'}
+                        </span>
+                    </div>
+                `).join('');
+            } catch(e) {}
+        }
+
+        loadHistory();
+    </script>
+</body>
+</html>
